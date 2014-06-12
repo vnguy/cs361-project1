@@ -1,16 +1,19 @@
-
+//Object - has private fields NAME, LABEL, and VALUE, with methods to get and set VALUE
 public class Object {
 	private String name;
-	private int label;
+	private SecurityLevel level;
 	private int value;
 	
-	public Object(String ObjName, int ObjLabel, int ObjVal) {
+	public Object(String ObjName, SecurityLevel ObjLevel, int ObjVal) {
 		name = ObjName;
-		label = ObjLabel;
+		level = ObjLevel;
 		value = ObjVal;
 	}
-	public int getLabel () {
-		return label;
+	public SecurityLevel getLevel () {
+		return level;
+	}
+	public String getName() {
+		return name;
 	}
 	public int getValue () {
 		return value;
@@ -19,3 +22,4 @@ public class Object {
 		value = n;
 	}
 }
+
