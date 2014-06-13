@@ -1,16 +1,16 @@
 
 public class Subject {
 	private String name;
-	private int level;
+	private SecurityLevel level;
 	private int value;
 	
-	public Subject(String SubName, int SubLevel, int SubVal) {
+	public Subject(String SubName, SecurityLevel SubLevel, int SubVal) {
 		name = SubName;
 		level = SubLevel;
 		value = SubVal;
 	}
 	
-	public int getLevel() {
+	public SecurityLevel getLevel() {
 		return level;
 	}
 	
@@ -21,5 +21,8 @@ public class Subject {
 	public void setValue(int n) {
 		value = n;
 	}
-
+	
+	public String getName() {
+		return name;
+	}
 }

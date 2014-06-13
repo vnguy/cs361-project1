@@ -1,21 +1,21 @@
 public class InstructionObject {
 
-	public InstructionType type;
+	public Type instructType;
 	public String subjectName;
 	public String objectName;
 	public int value;
 
-	public InstructionObject(InstructionType type, String subject, String object, int val){
-		this.type = type;
+	public InstructionObject(Type type, String subject, String object, int val){
+		this.instructType = type;
 		subjectName = subject;
 		objectName = object;
-		if(this.type == InstructionType.WRITE)
+		if(instructType == Type.WRITE)
 			value = val;
 		else value = 0;	
 	}
 
-	public InstructionObject(InstructionType type){
-		this.type = type;
+	public InstructionObject(Type type){
+		instructType = type;
 		subjectName = null;
 		objectName = null;
 		value = 0;

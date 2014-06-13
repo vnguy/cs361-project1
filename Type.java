@@ -1,4 +1,4 @@
 
 public enum Type {
-	READ, WRITE, BAD
+	BAD, READ, WRITE
 }

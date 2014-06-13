@@ -9,9 +9,11 @@ public class SecureSystem {
 	//InstructionType Type;
 
 	static Subject[] subjectList;
-	static InstructionType Type;
-	ReferenceManager RM;
+	static Type instructType;
+	ReferenceMonitor RM;
+	static boolean updateSubCheck;
 	InstructionObject result;
+	int index;
 	
 
 	public static void main(String[] args) throws FileNotFoundException, IOException {
@@ -19,102 +21,110 @@ public class SecureSystem {
 		SecurityLevel high = SecurityLevel.HIGH;
 		String file = args[0];
 		
-		SecureSystem sys = new SecureSystem();
-		
-		sys.createSubject("lyle", low, 0);
-		sys.createSubject("hal", high, 1);
-		
+		SecureSystem sys = new SecureSystem();		
+
+		sys.createSubject("lyle", low);	
+		sys.createSubject("hal", high);
+	
 		sys.RM.createNewObject("lobj", low);
 		sys.RM.createNewObject("hobj", high);
+		
 		
 		BufferedReader readFile = new BufferedReader(new FileReader(file));		
 		String currentLine = readFile.readLine();	
 		String delims = "[ ]+"; // split string by whitespaces 1 or more.
 		String subName = "";
 		String objName = "";
+
 		while(currentLine != null ) {
+			updateSubCheck = false;
 			String[] seperateTokens = currentLine.split(delims);
 			if(seperateTokens[0].toLowerCase().equals("read") && seperateTokens.length == 3) {
 				subName = seperateTokens[1].toLowerCase();
 				objName = seperateTokens[2].toLowerCase();
 
-				//System.out.println("" + checkSubjectName(subName) + " " + checkObjectName(objName));
 				if( !(checkSubjectName(subName)) || !(checkObjectName(objName))) {
-					sys.result = new InstructionObject(Type.BAD);
+					sys.result = new InstructionObject(instructType.BAD);
+					System.out.println("Bad Instruction");
 				} else {
-				//	System.out.println(" - " + seperateTokens[0]+ 
-				//		",  - " +subName +",  -" + objName);
-					sys.result = new InstructionObject(Type.READ,subName, objName, 0);
+					sys.result = new InstructionObject(instructType.READ,subName, objName, 0);
+					System.out.println(subName + " reads " + objName);
+					updateSubCheck = true;
 				}
 				
 			} else if(seperateTokens[0].toLowerCase().equals("write") && seperateTokens.length == 4) {
 				
 				subName = seperateTokens[1].toLowerCase();
 				objName = seperateTokens[2].toLowerCase();
-				int objVal = Integer.parseInt(seperateTokens[3]);// still need to check if String can parse too a int.
-				//System.out.println("" + checkSubjectName(subName) + " " +checkObjectName(objName));
+				int objVal = Integer.parseInt(seperateTokens[3]);
+
 				if(!(checkSubjectName(subName)) || !(checkObjectName(objName))) {
-					sys.result = new InstructionObject(Type.BAD);
-					//System.out.println("BAD");				
+					sys.result = new InstructionObject(instructType.BAD);
+					System.out.println("Bad Instruction");				
 				} else {					
-					sys.result = new InstructionObject(Type.WRITE,subName, objName, objVal);
-				
-					//System.out.println(" - " + seperateTokens[0]+ 
-					//	",  - " +subName +",  -" + objName + "  - " + objVal);
+					sys.result = new InstructionObject(instructType.WRITE,subName, objName, objVal);
+					System.out.println(subName + " writes " + objVal + " to " + objName);				
 				}
 	
 			} else {
 				//badinstruction
-				sys.result = new InstructionObject(Type.BAD);
-			
-				//System.out.println("BAD");
-
+				sys.result = new InstructionObject(instructType.BAD);
+				System.out.println("Bad Instruction");
 			}
-			int val = sys.RM.readInstruction(sys.result);
-			setReadValforSub(subName, val);
-			sys.RM.ObjManager.printObjectVals();
+			int mostRecentSubVal = sys.RM.readInstruction(sys.result);
+			if(updateSubCheck) {
+				setReadValforSub(subName, mostRecentSubVal);
+			}
 			
+			System.out.println("The current state is:");
+			//sys.RM.ObjManager.printObjectVals();
+		//	int subValR = sys.RM.ObjManager.reader(objName);
+			//printSubVals();
+			sys.displayResults();
 			currentLine = readFile.readLine();
 		}
 		readFile.close();
-
 	}
 	
 	public SecureSystem() {
 		subjectList = new Subject[2];
-		RM = new ReferenceManager();
+		RM = new ReferenceMonitor();
+		index = 0;
 	}
-	public void printSubVals() {
+
+	public static void printSubVals() {
 		for(int i = 0; i < subjectList.length; i++){
 			System.out.println("\t" + subjectList[i].getName() + " has recently read: "+ subjectList[i].getValue());
 		}
 	}
+
 	public static void setReadValforSub(String subName, int val) {
-		Subject current;
 		if(subName !=null) {
 			for(int i = 0 ;i < subjectList.length; i++) {
-				current = subjectList[i];
-				if(current.getName() == subName) {
-					current.setValue(val);
+				if(subjectList[i].getName().equals(subName)) {
+					subjectList[i].setValue(val);
 				}
 			}
 		}
 	}
 	
-	public void createSubject(String subName, SecurityLevel level,int i) {
-		subjectList[i] = new Subject(subName, level, 0);
+	public void createSubject(String subName, SecurityLevel level) {	
+		if(index < subjectList.length) {
+			subjectList[index] = new Subject(subName, level, 0);
+			RM.subLabelMap.put(subName, level);		
+			index++;
+		}
 	}
+
 	
 	public static boolean checkObjectName(String objName) {
-		//System.out.println("TEMP " + objName);
 		if(objName.equals("hobj") || objName.equals("lobj")) {
 			return true;
 		} 
-		return false;
-		
+		return false;	
 	}
+
 	public static boolean checkSubjectName(String subName) {
-		//System.out.println("TEMP " + subName);
 		if(subName.equals("lyle") || subName.equals("hal")) {
 			return true;
 		} 
@@ -123,5 +133,7 @@ public class SecureSystem {
 	
 	public void displayResults() {
 		RM.ObjManager.printObjectVals();
+		printSubVals();
+		System.out.println();
 	}
 }
